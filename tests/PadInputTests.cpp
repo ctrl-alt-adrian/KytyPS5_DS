@@ -51,6 +51,34 @@ void CheckTapAcrossStickBurst() {
         "the newest state has the sticks' last values");
 }
 
+void CheckTriggersAndReconnect() {
+  static PadData data[64];
+  constexpr int id = 12345;
+  Connect(id);
+  SetAxis(id, Axis::TriggerLeft, 200);
+  SetAxis(id, Axis::TriggerRight, 255);
+  SetButton(id, PAD_BUTTON_CROSS, true);
+  SetAxis(id, Axis::RightX, 255);
+  Check(PadReadState(1, &data[0]) == 0, "read active controller");
+  Check(data[0].analog_buttons_l2 == 200 && data[0].analog_buttons_r2 == 255,
+        "analog triggers reach PS5 pad");
+  Check((data[0].buttons & (PAD_BUTTON_L2 | PAD_BUTTON_R2)) == (PAD_BUTTON_L2 | PAD_BUTTON_R2),
+        "analog triggers set digital trigger buttons");
+  SetAxis(id, Axis::TriggerLeft, 0);
+  SetAxis(id, Axis::TriggerRight, 0);
+  Check(PadReadState(1, &data[0]) == 0 && (data[0].buttons & (PAD_BUTTON_L2 | PAD_BUTTON_R2)) == 0,
+        "released triggers clear digital buttons");
+  Disconnect(id);
+  Disconnect(id); // An unopened/already removed device is harmless.
+  Connect(id + 1);
+  SetButton(id, PAD_BUTTON_CROSS, true); // Stale instance ID must be ignored.
+  Check(PadReadState(1, &data[0]) == 0 && data[0].buttons == 0 && data[0].right_stick_x == 128,
+        "reconnect resets buttons and sticks and ignores stale events");
+  Check(data[0].analog_buttons_l2 == 0 && data[0].analog_buttons_r2 == 0,
+        "reconnect resets triggers");
+  Disconnect(id + 1);
+}
+
 } // namespace
 
 int main() {
@@ -64,6 +92,7 @@ int main() {
 
   Libs::Controller::Initialize();
   CheckTapAcrossStickBurst();
+  CheckTriggersAndReconnect();
   Libs::Controller::Shutdown();
   subsystems.Destroy();
 

@@ -52,6 +52,13 @@
      <item>
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
+        <widget class="QPushButton" name="controller_diagnostics">
+         <property name="text">
+          <string>Controller Diagnostics</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QLabel" name="label_settings_file">
          <property name="text">
           <string>TextLabel</string>

@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include "configuration.h"
+#include "controllerDiagnosticsDialog.h"
 #include "configurationItem.h"
 #include "configurationListWidget.h"
 #include "patchesDialog.h"
@@ -19,6 +20,7 @@
 #include <QMessageBox>
 #include <QPointer>
 #include <QProcess>
+#include <QPushButton>
 #include <QRadioButton>
 #include <QRegularExpression>
 #include <QSettings>
@@ -153,6 +155,11 @@ void MainDialogPrivate::Setup(MainDialog* main_dialog) {
 		        }
 		        Update();
 	        });
+
+	connect(m_ui->controller_diagnostics, &QPushButton::clicked, this, [this] {
+		ControllerDiagnosticsDialog dialog(m_main_dialog);
+		dialog.exec(); // Modal: SDL handles are released before a game can be started.
+	});
 
 	// connect(main_dialog, &MainDialog::Quit, [=]() { m_process.Detach(); });
 
@@ -565,6 +572,7 @@ void MainDialogPrivate::Update() {
 	}
 
 	m_ui->widget->SetRunEnabled(run_enabled);
+	m_ui->controller_diagnostics->setEnabled(m_process.state() == QProcess::NotRunning);
 }
 
 #include "mainDialog.moc"

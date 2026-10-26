@@ -729,6 +729,11 @@ if(NOT KYTY_CLANG_CL)
 endif()
 
 if(BUILD_TESTING)
+	add_executable(controller_mapping_tests EXCLUDE_FROM_ALL tests/ControllerMappingTests.cpp)
+	target_compile_definitions(controller_mapping_tests PRIVATE SDL_MAIN_HANDLED)
+	target_include_directories(controller_mapping_tests PRIVATE ${inc_headers})
+	target_link_libraries(controller_mapping_tests PRIVATE SDL2-static)
+	add_test(NAME controller_mapping COMMAND $<TARGET_FILE:controller_mapping_tests>)
 	find_package(Threads REQUIRED)
 	add_executable(atrac9_initialization_tests EXCLUDE_FROM_ALL tests/Atrac9InitializationTests.cpp)
 	target_link_libraries(atrac9_initialization_tests PRIVATE LibAtrac9 Threads::Threads)
@@ -822,6 +827,7 @@ if(BUILD_TESTING)
 	endif()
 
 	add_custom_target(kyty_tests DEPENDS
+		controller_mapping_tests
 		ime_dialog_tests
 		shader_cfg_tests
 		scalar_provenance_tests

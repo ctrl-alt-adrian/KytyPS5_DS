@@ -20,7 +20,7 @@ add_executable(launcher WIN32
 )
 
 
-target_link_libraries(launcher Qt6::Concurrent Qt6::Network Qt6::Widgets Vulkan::Headers kyty_git_version)
+target_link_libraries(launcher Qt6::Concurrent Qt6::Network Qt6::Widgets SDL2-static Vulkan::Headers kyty_git_version)
 if(WIN32)
 target_link_libraries(launcher setupapi)
 endif()
@@ -28,7 +28,8 @@ if (CLANG AND NOT KYTY_CLANG_CL)
 target_compile_options(launcher PRIVATE -frtti)
 target_link_libraries(launcher pthread)
 endif()
-target_include_directories(launcher PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/src")
+target_compile_definitions(launcher PRIVATE SDL_MAIN_HANDLED)
+target_include_directories(launcher PRIVATE "${KYTY_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set_target_properties(launcher PROPERTIES AUTOUIC ON AUTOMOC ON AUTORCC ON)
 
 if(WIN32 AND NOT KYTY_CLANG_CL)
@@ -197,3 +198,15 @@ list(APPEND inc_headers
 include_what_you_use_with_mappings(launcher "${inc_headers}" "${iwyu_maps}")
 
 clang_tidy_check(launcher "" "${tidy_dirs}" "${inc_headers}")
+
+if(BUILD_TESTING)
+	add_executable(controller_diagnostics_tests EXCLUDE_FROM_ALL
+		"${KYTY_TESTS_DIR}/ControllerDiagnosticsTests.cpp"
+		src/controllerDiagnosticsDialog.cpp)
+	target_compile_definitions(controller_diagnostics_tests PRIVATE SDL_MAIN_HANDLED)
+	target_include_directories(controller_diagnostics_tests PRIVATE "${KYTY_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/include")
+	target_link_libraries(controller_diagnostics_tests PRIVATE Qt6::Widgets SDL2-static)
+	add_test(NAME controller_diagnostics COMMAND $<TARGET_FILE:controller_diagnostics_tests>)
+	set_tests_properties(controller_diagnostics PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+	add_dependencies(kyty_tests controller_diagnostics_tests)
+endif()
